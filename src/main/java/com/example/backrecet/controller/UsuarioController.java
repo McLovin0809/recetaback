@@ -3,6 +3,7 @@ package com.example.backrecet.controller;
 import com.example.backrecet.model.Usuario;
 import com.example.backrecet.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,19 +31,34 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public Usuario crear(@RequestBody Usuario usuario) {
-        return usuarioService.guardar(usuario);
+    public ResponseEntity<?> crear(@RequestBody Usuario usuario) {
+        try {
+            return ResponseEntity.ok(usuarioService.guardar(usuario));
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().equals("EMAIL_DUPLICADO")) {
+                return ResponseEntity.badRequest().body("El correo ya está registrado");
+            }
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
-    public Usuario actualizar(@PathVariable Integer id, @RequestBody Usuario usuario) {
-        usuario.setId(id);
-        return usuarioService.guardar(usuario);
+    public ResponseEntity<?> actualizar(@PathVariable Integer id, @RequestBody Usuario usuario) {
+        try {
+            usuario.setId(id);
+            return ResponseEntity.ok(usuarioService.guardar(usuario));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PatchMapping("/{id}")
-    public Usuario actualizarParcial(@PathVariable Integer id, @RequestBody Usuario cambios) {
-        return usuarioService.actualizarParcial(id, cambios).orElse(null);
+    public ResponseEntity<?> actualizarParcial(@PathVariable Integer id, @RequestBody Usuario cambios) {
+        try {
+            return ResponseEntity.ok(usuarioService.actualizarParcial(id, cambios));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
